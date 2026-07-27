@@ -1,0 +1,117 @@
+// طرح‌یار (DesignDecide) — مدل داده هسته فاز ۱
+// این اسکیما پایه تصمیم‌سازی طراحی داخلی است: فضا -> سلیقه/بودجه -> سناریوها -> تطبیق کالا -> تخمین قیمت
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum BudgetTier {
+  ECONOMIC // اقتصادی
+  STANDARD // استاندارد
+  PREMIUM // پریمیوم
+}
+
+enum SpaceUsage {
+  FAMILY_HOME // خانه خانوادگی
+  RENTAL_UNIT // واحد اجاره‌ای
+  SHORT_STAY // اقامتگاه/short-stay
+  SMALL_SPACE // فضای کوچک
+  OFFICE
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  role      UserRole @default(CUSTOMER)
+  createdAt DateTime @default(now())
+  spaces    Space[]
+}
+
+enum UserRole {
+  CUSTOMER
+  DESIGNER
+  ADMIN
+}
+
+// یک فضای فیزیکی که کاربر برای طراحی ثبت می‌کند (مثلاً هال، اتاق خواب)
+model Space {
+  id          String     @id @default(cuid())
+  userId      String
+  user        User       @relation(fields: [userId], references: [id])
+  title       String
+  roomType    String // living_room, bedroom, kitchen, ...
+  usage       SpaceUsage
+  areaSqm     Float?
+  photos      Photo[]
+  preference  Preference?
+  scenarios   Scenario[]
+  createdAt   DateTime   @default(now())
+}
+
+model Photo {
+  id        String   @id @default(cuid())
+  spaceId   String
+  space     Space    @relation(fields: [spaceId], references: [id])
+  url       String
+  // خروجی تحلیل بصری AI (نوع اتاق، نور، وضعیت فعلی، اشیای موجود) به‌صورت JSON خام
+  analysis  Json?
+  createdAt DateTime @default(now())
+}
+
+// پروفایل سلیقه و بریف کاربر — خروجی مرحله taste modeling
+model Preference {
+  id          String     @id @default(cuid())
+  spaceId     String     @unique
+  space       Space      @relation(fields: [spaceId], references: [id])
+  styleTags   String[] // مینیمال، کلاسیک، اسکاندیناوین، ...
+  budgetTier  BudgetTier
+  budgetMax   Int? // تومان
+  mustKeep    String[] // آیتم‌هایی که کاربر می‌خواهد نگه دارد
+  notes       String?
+  createdAt   DateTime   @default(now())
+}
+
+// یک سناریوی طراحی پیشنهادی AI برای یک فضا (معمولاً ۲ تا ۳ سناریو در هر تیر بودجه)
+model Scenario {
+  id            String       @id @default(cuid())
+  spaceId       String
+  space         Space        @relation(fields: [spaceId], references: [id])
+  tier          BudgetTier
+  title         String
+  description   String
+  estimatedCost Int? // تومان، مجموع آیتم‌های تطبیق‌یافته
+  items         ScenarioItem[]
+  createdAt     DateTime     @default(now())
+}
+
+// یک آیتم پیشنهادی داخل سناریو، تطبیق‌یافته با کاتالوگ محصول
+model ScenarioItem {
+  id          String    @id @default(cuid())
+  scenarioId  String
+  scenario    Scenario  @relation(fields: [scenarioId], references: [id])
+  category    String // مبلمان، نورپردازی، فرش، دکور، ...
+  label       String
+  productId   String?
+  product     Product?  @relation(fields: [productId], references: [id])
+  quantity    Int       @default(1)
+  notes       String?
+}
+
+// کاتالوگ کالای واقعی بازار ایران (seed اولیه در فاز ۱، بعداً اتصال به تأمین‌کننده واقعی)
+model Product {
+  id            String         @id @default(cuid())
+  name          String
+  category      String
+  tier          BudgetTier
+  priceToman    Int
+  vendor        String?
+  imageUrl      String?
+  sourceUrl     String?
+  scenarioItems ScenarioItem[]
+  createdAt     DateTime       @default(now())
+}

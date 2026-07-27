@@ -1,0 +1,14 @@
+{
+  "name": "tarhyar",
+  "private": true,
+  "version": "0.1.0",
+  "description": "طرح‌یار (DesignDecide) — کوپایلوت هوشمند طراحی داخلی، قیمت‌گذاری و تأمین برای فضاهای ایرانی",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w apps/web",
+    "build": "npm run build -w apps/web",
+    "lint": "npm run lint -w apps/web"
+  }
+}
