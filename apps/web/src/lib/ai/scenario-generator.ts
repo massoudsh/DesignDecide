@@ -21,8 +21,8 @@ export async function generateScenario(
   const { preference } = input;
   const categories = ["مبلمان", "فرش", "نورپردازی", "پرده", "دکور"];
 
-  const items: ScenarioItem[] = categories
-    .map((category) => {
+  const items = categories
+    .map((category): ScenarioItem | null => {
       const candidates = findProductsByCategory(category, preference.budgetTier);
       const product = candidates[0];
       if (!product) return null;
