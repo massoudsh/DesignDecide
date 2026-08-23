@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { createScenarioVersion } from "@/lib/scenario-versions";
 
 const itemSchema = z.object({
   productId: z.string().min(1),
@@ -54,7 +55,8 @@ export async function POST(req: NextRequest, { params }: { params: { scenarioId:
     include: { product: true },
   });
   const summary = await recalculateScenarioCost(scenario.id);
-  return NextResponse.json({ item, ...summary }, { status: 201 });
+  const version = await createScenarioVersion(scenario.id);
+  return NextResponse.json({ item, version: version.version, ...summary }, { status: 201 });
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: { scenarioId: string } }) {
@@ -76,7 +78,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { scenarioId
     include: { product: true },
   });
   const summary = await recalculateScenarioCost(params.scenarioId);
-  return NextResponse.json({ item: updated, ...summary });
+  const version = await createScenarioVersion(params.scenarioId);
+  return NextResponse.json({ item: updated, version: version.version, ...summary });
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: { scenarioId: string } }) {
@@ -90,5 +93,6 @@ export async function DELETE(req: NextRequest, { params }: { params: { scenarioI
 
   await db.scenarioItem.delete({ where: { id: item.id } });
   const summary = await recalculateScenarioCost(params.scenarioId);
-  return NextResponse.json(summary);
+  const version = await createScenarioVersion(params.scenarioId);
+  return NextResponse.json({ version: version.version, ...summary });
 }

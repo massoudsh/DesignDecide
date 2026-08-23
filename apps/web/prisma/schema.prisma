@@ -86,7 +86,20 @@ model Scenario {
   description   String
   estimatedCost Int? // تومان، مجموع آیتم‌های تطبیق‌یافته
   items         ScenarioItem[]
+  versions      ScenarioVersion[]
   createdAt     DateTime     @default(now())
+}
+
+model ScenarioVersion {
+  id            String   @id @default(cuid())
+  scenarioId    String
+  scenario      Scenario @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+  version       Int
+  estimatedCost Int?
+  snapshot      Json
+  createdAt     DateTime @default(now())
+
+  @@unique([scenarioId, version])
 }
 
 // یک آیتم پیشنهادی داخل سناریو، تطبیق‌یافته با کاتالوگ محصول
