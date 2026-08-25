@@ -32,6 +32,12 @@ model User {
   spaces    Space[]
 }
 
+model WaitlistEntry {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+}
+
 enum UserRole {
   CUSTOMER
   DESIGNER
