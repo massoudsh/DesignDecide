@@ -16,6 +16,11 @@ const replacementSchema = z.object({
 
 const removalSchema = z.object({ itemId: z.string().min(1) });
 
+type ItemWithPrice = {
+  quantity: number;
+  product: { priceToman: number } | null;
+};
+
 async function recalculateScenarioCost(scenarioId: string) {
   const total = await db.scenarioItem.aggregate({
     where: { scenarioId },
@@ -26,7 +31,7 @@ async function recalculateScenarioCost(scenarioId: string) {
     include: { product: { select: { priceToman: true } } },
   });
   const estimatedCost = items.reduce(
-    (sum, item) => sum + (item.product?.priceToman ?? 0) * item.quantity,
+    (sum: number, item: ItemWithPrice) => sum + (item.product?.priceToman ?? 0) * item.quantity,
     0
   );
   await db.scenario.update({ where: { id: scenarioId }, data: { estimatedCost } });
