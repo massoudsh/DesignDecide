@@ -40,6 +40,25 @@ npm run dev
 > نصب پکیج‌ها و اجرای دیتابیس واقعی به دلیل حجم بالا در محیط توسعه‌ی سبک
 > توصیه نمی‌شود — برای تست کامل روی سرور استقرار انجام شود.
 
+## استقرار production
+
+پیش‌نیاز: Node.js 20+ و PostgreSQL 14+.
+
+```bash
+npm ci
+npm run prisma:generate -w apps/web
+npm run prisma:deploy -w apps/web
+npm run build -w apps/web
+npm run start -w apps/web
+```
+
+متغیرهای لازم در `apps/web/.env`:
+
+- `DATABASE_URL` — اتصال PostgreSQL production
+- `OPENAI_API_KEY` — فقط زمانی لازم است که لایهٔ AI واقعی فعال شود
+
+برای health check از `GET /api/health` استفاده کنید؛ پاسخ سالم `{ "status": "ok" }` است. فایل‌های آپلودی فعلاً در `public/uploads` ذخیره می‌شوند؛ در محیط چندنمونه‌ای باید این مسیر روی volume پایدار یا object storage mount شود.
+
 ## لایسنس
 
 Apache License 2.0 — جزئیات در [LICENSE](./LICENSE).
