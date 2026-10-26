@@ -22,10 +22,6 @@ type ItemWithPrice = {
 };
 
 async function recalculateScenarioCost(scenarioId: string) {
-  const total = await db.scenarioItem.aggregate({
-    where: { scenarioId },
-    _sum: { quantity: true },
-  });
   const items = await db.scenarioItem.findMany({
     where: { scenarioId },
     include: { product: { select: { priceToman: true } } },
@@ -35,7 +31,7 @@ async function recalculateScenarioCost(scenarioId: string) {
     0
   );
   await db.scenario.update({ where: { id: scenarioId }, data: { estimatedCost } });
-  return { estimatedCost, itemCount: total._sum.quantity ?? 0 };
+  return { estimatedCost, itemCount: items.reduce((sum: number, item: ItemWithPrice) => sum + item.quantity, 0) };
 }
 
 export async function POST(req: NextRequest, { params }: { params: { scenarioId: string } }) {

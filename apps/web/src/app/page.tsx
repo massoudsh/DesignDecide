@@ -54,11 +54,10 @@ export default function HomePage() {
   async function generateScenarios() {
     setLoading(true);
     setError("");
-    setScenarios([]);
+    setGenerationStage("در حال ساخت سه مسیر طراحی...");
     try {
       const results = await Promise.all(
-        tiers.map(async ({ id, label }) => {
-          setGenerationStage(`در حال ساخت مسیر ${label}...`);
+        tiers.map(async ({ id }) => {
           const response = await fetch("/api/scenarios", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -70,7 +69,7 @@ export default function HomePage() {
                 styleTags: [style],
                 budgetTier: id,
                 budgetMaxToman: Number(budgetMax) || undefined,
-                mustKeep: mustKeep.split(",").map((item) => item.trim()).filter(Boolean),
+                mustKeep: mustKeep.split(/[,،]/).map((item) => item.trim()).filter(Boolean),
                 notes: notes || undefined,
               },
             }),
@@ -92,13 +91,17 @@ export default function HomePage() {
   async function joinWaitlist(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setWaitlistError("");
-    const response = await fetch("/api/waitlist", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: waitlistEmail }),
-    });
-    if (response.ok) setWaitlistJoined(true);
-    else setWaitlistError("ایمیل واردشده معتبر نیست.");
+    try {
+      const response = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: waitlistEmail }),
+      });
+      if (response.ok) setWaitlistJoined(true);
+      else setWaitlistError(response.status === 400 ? "ایمیل واردشده معتبر نیست." : "ثبت درخواست انجام نشد. دوباره تلاش کنید.");
+    } catch {
+      setWaitlistError("اتصال برقرار نشد. دوباره تلاش کنید.");
+    }
   }
 
   return (
