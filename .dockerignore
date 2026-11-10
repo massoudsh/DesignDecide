@@ -1,0 +1,13 @@
+.git
+.github
+.noqte
+.tools
+uploads
+**/node_modules
+**/.next
+**/.env
+**/.env.*
+!**/.env.example
+**/public/uploads
+**/*.log
+**/*.tsbuildinfo

@@ -59,6 +59,38 @@ npm run start -w apps/web
 
 برای health check از `GET /api/health` استفاده کنید؛ پاسخ سالم `{ "status": "ok" }` است. فایل‌های آپلودی فعلاً در `public/uploads` ذخیره می‌شوند؛ در محیط چندنمونه‌ای باید این مسیر روی volume پایدار یا object storage mount شود.
 
+## استقرار با Docker
+
+روی سرور دارای Docker Engine و Compose v2، از ریشهٔ پروژه اجرا کنید. بیلد image باید روی سرور انجام شود.
+
+در محیط استقرار `POSTGRES_PASSWORD` و `DATABASE_URL` را به‌صورت امن تنظیم کنید؛ آن‌ها را در Git یا دستورهای دارای مقدار واقعی ثبت نکنید. قالب اتصال داخل شبکهٔ Compose:
+
+```text
+postgresql://tarhyar:<URL_ENCODED_PASSWORD>@db:5432/tarhyar?schema=public
+```
+
+رمز داخل URL باید نسخهٔ percent-encoded مقدار `POSTGRES_PASSWORD` باشد. این تنظیم برای دیتابیس جدید Compose است؛ دادهٔ دیتابیس قبلی VPS خودکار منتقل نمی‌شود.
+
+```bash
+docker compose build --pull
+docker compose up -d
+docker compose ps
+docker compose logs --tail=100 web migrate
+```
+
+Compose ابتدا سلامت PostgreSQL را بررسی می‌کند، سپس migration را با image جدا اجرا می‌کند و فقط پس از موفقیت آن اپ را بالا می‌آورد. اجرای مجدد پس از تغییر کد:
+
+```bash
+docker compose build --pull
+docker compose up -d db
+docker compose run --rm migrate
+docker compose up -d --no-deps web
+```
+
+اپ با Node.js 22 و کاربر غیر root اجرا می‌شود؛ health check آن `/api/health` است. پورت پیش‌فرض فقط روی loopback سرور منتشر می‌شود؛ برای انتشار عمومی، reverse proxy دارای HTTPS را به پورت `3000` متصل کنید. اگر سرویس قبلی همین پورت را گرفته است، `WEB_PORT` را تغییر دهید و سرویس قبلی را بدون برنامهٔ انتقال متوقف نکنید.
+
+volumeهای `postgres-data` و `uploads-data` مستقل از عمر container هستند. برای دادهٔ production backup جدا داشته باشید؛ از `docker compose down -v` استفاده نکنید مگر با قصد حذف کامل داده‌ها. PostgreSQL هیچ پورت عمومی منتشر نمی‌کند. فایل‌های محیطی، پیوست‌ها و ابزارهای توسعه از build context حذف شده‌اند.
+
 ## لایسنس
 
 Apache License 2.0 — جزئیات در [LICENSE](./LICENSE).
