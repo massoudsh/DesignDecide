@@ -33,6 +33,15 @@ if [ -e "$env_file" ] && [ "$force" -ne 1 ]; then
   exit 1
 fi
 
+# A stale shell value would silently override the .env Compose reads.
+for key in POSTGRES_PASSWORD DATABASE_URL; do
+  if [ -n "${!key-}" ]; then
+    printf '%s is set in the current shell and overrides .env for docker compose.\n' "$key" >&2
+    printf 'Run: unset %s   (then re-run this script)\n' "$key" >&2
+    exit 1
+  fi
+done
+
 if command -v openssl >/dev/null 2>&1; then
   password="$(openssl rand -hex 24)"
 else

@@ -106,6 +106,14 @@ docker compose up -d
 
 پیش از اتصال، اسکریپت `.env` را مثل خود Compose می‌خواند: `\r\n` ویندوز، `export`، فاصلهٔ اضافه و کوتیشن‌های تکی/دوتایی را می‌پذیرد و سپس بررسی می‌کند که رمز `DATABASE_URL` (پس از percent-decode) با `POSTGRES_PASSWORD` یکی باشد. اگر یکی نبود، با پیام مشخص متوقف می‌شود؛ راه درست، ساخت دوبارهٔ هر دو با `bash scripts/setup-env.sh --force` است. برای رمز دستی با کاراکترهای خاص، مقدار داخل `DATABASE_URL` را URL-encode کنید (مثلاً `@` → `%40`).
 
+اولویت خواندن مثل Compose است: متغیر شلِ غیرخالی بر `.env` مقدم است. برای دیدن منبع و شکل مقادیر، بدون افشای رمز:
+
+```bash
+npm run docker:sync-db-password -- --diagnose
+```
+
+اگر `POSTGRES_PASSWORD is empty or missing` دیدید، یعنی نه در شل و نه در `.env` مقدار دارد. در این حالت `.env` را با `npm run docker:setup -- --force` بازسازی کنید و مطمئن شوید متغیر کهنه‌ای در شل تنظیم نکرده‌اید (`unset POSTGRES_PASSWORD DATABASE_URL`).
+
 ## لایسنس
 
 Apache License 2.0 — جزئیات در [LICENSE](./LICENSE).
