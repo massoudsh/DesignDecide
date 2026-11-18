@@ -61,22 +61,22 @@ npm run start -w apps/web
 
 ## استقرار با Docker
 
-روی سرور دارای Docker Engine و Compose v2، از ریشهٔ پروژه اجرا کنید. بیلد image باید روی سرور انجام شود.
-
-در محیط استقرار `POSTGRES_PASSWORD` و `DATABASE_URL` را به‌صورت امن تنظیم کنید؛ آن‌ها را در Git یا دستورهای دارای مقدار واقعی ثبت نکنید. قالب اتصال داخل شبکهٔ Compose:
-
-```text
-postgresql://tarhyar:<URL_ENCODED_PASSWORD>@db:5432/tarhyar?schema=public
-```
-
-رمز داخل URL باید نسخهٔ percent-encoded مقدار `POSTGRES_PASSWORD` باشد. این تنظیم برای دیتابیس جدید Compose است؛ دادهٔ دیتابیس قبلی VPS خودکار منتقل نمی‌شود.
+Docker خودِ PostgreSQL را هم اجرا می‌کند؛ نصب جداگانهٔ دیتابیس لازم نیست. روی سرور دارای Docker Engine و Compose v2، از ریشهٔ پروژه:
 
 ```bash
-docker compose build --pull
-docker compose up -d
-docker compose ps
-docker compose logs --tail=100 web migrate
+npm run docker:setup   # ساخت .env با رمز تصادفی URL-safe، دسترسی 600
+npm run docker:up      # بیلد و اجرای db + migrate + web
+npm run docker:ps
+npm run docker:logs
 ```
+
+`docker:setup` فقط یک بار فایل `.env` را می‌سازد و رمز را داخل آن می‌نویسد؛ رمز را در ترمینال چاپ نمی‌کند و در Git هم قرار نمی‌گیرد. اگر `.env` از قبل وجود داشته باشد، بازنویسی نمی‌شود. برای جایگزینی آگاهانه: `bash scripts/setup-env.sh --force`.
+
+- `POSTGRES_PASSWORD` — رمز دیتابیس؛ تولیدشده توسط اسکریپت
+- `DATABASE_URL` — اتصال `db:5432` با همان رمز؛ رمز URL-safe است و نیازی به percent-encoding ندارد
+- `WEB_PORT` — اختیاری؛ پورت loopback پیش‌فرض `3000`
+
+اگر رمز را دستی عوض می‌کنید، هر دو مقدار را هماهنگ نگه دارید و رمز را URL-encode کنید. این تنظیم برای دیتابیس جدید Compose است؛ دادهٔ دیتابیس قبلی VPS خودکار منتقل نمی‌شود.
 
 Compose ابتدا سلامت PostgreSQL را بررسی می‌کند، سپس migration را با image جدا اجرا می‌کند و فقط پس از موفقیت آن اپ را بالا می‌آورد. اجرای مجدد پس از تغییر کد:
 
@@ -90,6 +90,8 @@ docker compose up -d --no-deps web
 اپ با Node.js 22 و کاربر غیر root اجرا می‌شود؛ health check آن `/api/health` است. پورت پیش‌فرض فقط روی loopback سرور منتشر می‌شود؛ برای انتشار عمومی، reverse proxy دارای HTTPS را به پورت `3000` متصل کنید. اگر سرویس قبلی همین پورت را گرفته است، `WEB_PORT` را تغییر دهید و سرویس قبلی را بدون برنامهٔ انتقال متوقف نکنید.
 
 volumeهای `postgres-data` و `uploads-data` مستقل از عمر container هستند. برای دادهٔ production backup جدا داشته باشید؛ از `docker compose down -v` استفاده نکنید مگر با قصد حذف کامل داده‌ها. PostgreSQL هیچ پورت عمومی منتشر نمی‌کند. فایل‌های محیطی، پیوست‌ها و ابزارهای توسعه از build context حذف شده‌اند.
+
+اگر سرویس backend شما unhealthy می‌شود، اول `docker compose logs --tail=200 migrate web` را بخوانید؛ شایع‌ترین علت، نامعتبر بودن `DATABASE_URL` یا اجرا نشدن migration پیش از بالا آمدن اپ است.
 
 ## لایسنس
 

@@ -5,7 +5,7 @@ services:
     environment:
       POSTGRES_USER: tarhyar
       POSTGRES_DB: tarhyar
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in the deployment environment}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run scripts/setup-env.sh to generate .env with POSTGRES_PASSWORD}
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
@@ -19,7 +19,7 @@ services:
       context: .
       target: migrate
     environment:
-      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL for the db service using a URL-encoded password}
+      DATABASE_URL: ${DATABASE_URL:?Run scripts/setup-env.sh to generate .env with DATABASE_URL}
     depends_on:
       db:
         condition: service_healthy
@@ -31,7 +31,7 @@ services:
       target: runner
     restart: unless-stopped
     environment:
-      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL for the db service using a URL-encoded password}
+      DATABASE_URL: ${DATABASE_URL:?Run scripts/setup-env.sh to generate .env with DATABASE_URL}
     ports:
       - "${WEB_BIND_ADDRESS:-127.0.0.1}:${WEB_PORT:-3000}:3000"
     volumes:
