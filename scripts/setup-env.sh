@@ -5,6 +5,8 @@ set -euo pipefail
 
 root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 env_file="$root_dir/.env"
+# shellcheck source=scripts/env-lib.sh
+. "$root_dir/scripts/env-lib.sh"
 force=0
 
 for arg in "$@"; do
