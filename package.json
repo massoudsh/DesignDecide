@@ -12,6 +12,7 @@
     "build": "npm run build -w apps/web",
     "lint": "npm run lint -w apps/web",
     "docker:setup": "bash scripts/setup-env.sh",
+    "docker:sync-db-password": "bash scripts/sync-db-password.sh",
     "docker:up": "docker compose up -d --build",
     "docker:ps": "docker compose ps",
     "docker:logs": "docker compose logs --tail=100 web migrate"

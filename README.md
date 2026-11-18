@@ -93,6 +93,17 @@ volumeهای `postgres-data` و `uploads-data` مستقل از عمر container 
 
 اگر سرویس backend شما unhealthy می‌شود، اول `docker compose logs --tail=200 migrate web` را بخوانید؛ شایع‌ترین علت، نامعتبر بودن `DATABASE_URL` یا اجرا نشدن migration پیش از بالا آمدن اپ است.
 
+### خطای `P1000` یا «رمز دیتابیس نامعتبر است»
+
+PostgreSQL مقدار `POSTGRES_PASSWORD` را فقط هنگام **اولین ساخت** دادهٔ خالی اعمال می‌کند. اگر volume `postgres-data` از قبل با رمز دیگری ساخته شده باشد، تغییر `.env` رمز داخل دیتابیس را عوض نمی‌کند. برای همگام‌سازی بدون حذف داده:
+
+```bash
+npm run docker:sync-db-password
+docker compose up -d
+```
+
+این اسکریپت فقط `ALTER USER` را روی دیتابیس در حال اجرا اعمال می‌کند؛ جدول‌ها و ردیف‌ها دست‌نخورده می‌مانند و رمز را چاپ نمی‌کند. اگر کاربر `tarhyar` دسترسی تغییر رمز خودش را ندارد، همان دستور را به‌صورت دستی با کاربر `postgres` اجرا کنید. هرگز برای رفع این خطا `docker compose down -v` نزنید؛ آن دستور داده‌ها را حذف می‌کند.
+
 ## لایسنس
 
 Apache License 2.0 — جزئیات در [LICENSE](./LICENSE).
